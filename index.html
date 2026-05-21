@@ -64,7 +64,19 @@ html,body{height:100%;width:100%;overflow:hidden;background:var(--bg0);color:var
 }
 .pl-head{display:flex;align-items:center;padding:8px 8px 7px;border-bottom:0.5px solid var(--border);}
 .th{font-size:11px;color:var(--t2);}
-#ilist{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:3px 4px 0;}
+#ilist{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:3px 4px 0;min-height:0;}
+/* Reference panel */
+.ref-panel{flex:1;min-height:0;display:flex;flex-direction:column;border-top:1.5px solid var(--amber);overflow:hidden;}
+.ref-head{display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:0.5px solid var(--border);flex-shrink:0;background:var(--bg2);}
+.ref-head span{font-size:11px;color:var(--amber);font-weight:600;flex:1;}
+.ref-head select{font-size:11px;background:var(--bg3);border:0.5px solid var(--border);border-radius:var(--rs);color:var(--t1);padding:3px 6px;flex:2;font-family:var(--sans);}
+#rref-list{flex:1;overflow-y:auto;overscroll-behavior:contain;padding:3px 4px 0;}
+.rref-row{display:flex;align-items:center;padding:2px 4px;border-radius:4px;}
+.rref-name{font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--t2);}
+.rref-g{font-size:13px;font-weight:500;font-family:var(--mono);width:72px;text-align:right;color:var(--t2);}
+.rref-pct{font-size:11px;text-align:right;color:var(--t3);width:48px;}
+.rref-bar-wrap{height:2px;background:var(--bg3);border-radius:2px;margin:0 4px 2px;overflow:hidden;}
+.rref-bar-fill{height:100%;border-radius:2px;background:var(--amber);transition:width .3s ease;}
 .ir{display:flex;flex-direction:column;border-radius:5px;padding:1px 2px 2px;transition:background .1s;}
 .ir:hover{background:var(--bg2);}
 .ir.sel{background:var(--blue-dim);}
@@ -142,7 +154,19 @@ select option{background:var(--bg2);}
 
 /* Log */
 .lc{background:var(--bg1);border:0.5px solid var(--border);border-radius:var(--r);padding:9px 12px;flex:1;display:flex;flex-direction:column;min-height:0;}
-.lh{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-shrink:0;}
+.lh{display:flex;align-items:center;gap:6px;margin-bottom:0;flex-shrink:0;cursor:pointer;}
+.lh-toggle{font-size:11px;color:var(--t3);margin-left:4px;transition:transform .2s;}
+.lh-toggle.open{transform:rotate(180deg);}
+.log-body{overflow:hidden;transition:max-height .25s ease;max-height:0;}
+.log-body.open{max-height:600px;}
+.lth{display:flex;gap:6px;padding:5px 2px 2px;border-bottom:0.5px solid var(--border);font-size:10px;color:var(--t3);flex-shrink:0;}
+/* Numpad */
+.numpad{background:var(--bg1);border:0.5px solid var(--border);border-radius:var(--r);padding:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;flex-shrink:0;}
+.nk{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rs);padding:10px 4px;font-size:16px;font-family:var(--mono);color:var(--t1);cursor:pointer;text-align:center;user-select:none;transition:background .1s;}
+.nk:active{background:var(--bg3);}
+.nk.nk-wide{grid-column:span 2;}
+.nk.nk-del{color:var(--amber);}
+.nk.nk-clr{color:#e05555;}
 .fpill{font-size:11px;background:var(--blue-dim);color:var(--blue);padding:1px 8px;border-radius:10px;}
 .lth{display:grid;grid-template-columns:36px 40px 1fr 70px 30px 30px;gap:3px;padding:0 2px 4px;border-bottom:0.5px solid var(--border);flex-shrink:0;}
 .lth span{font-size:10px;color:var(--t3);}
@@ -235,6 +259,17 @@ select option{background:var(--bg2);}
       <span style="font-size:11px;color:var(--t2);width:56px;text-align:right;">100%</span>
       <span style="width:56px;"></span>
     </div>
+
+    <!-- Reference recipe panel -->
+    <div class="ref-panel">
+      <div class="ref-head">
+        <span>📋 参照</span>
+        <select id="ref-select" onchange="renderRef()">
+          <option value="">-- レシピを選択 --</option>
+        </select>
+      </div>
+      <div id="rref-list"></div>
+    </div>
   </div>
 
   <!-- Right column -->
@@ -289,18 +324,39 @@ select option{background:var(--bg2);}
 
     <!-- Log -->
     <div class="lc">
-      <div class="lh">
+      <div class="lh" onclick="toggleLog()">
         <span style="font-size:12px;font-weight:500;color:var(--t2);">添加記録</span>
         <span id="fpill" class="fpill" style="display:none;"></span>
-        <button id="cfbtn" class="btng" onclick="clearSel()" style="display:none;">全表示</button>
+        <button id="cfbtn" class="btng" onclick="event.stopPropagation();clearSel()" style="display:none;">全表示</button>
         <span style="flex:1"></span>
         <span id="lcnt" style="font-size:11px;color:var(--t3);"></span>
+        <span class="lh-toggle" id="log-toggle">▼</span>
       </div>
-      <div class="lth">
-        <span>時刻</span><span>種別</span><span>原料 / メモ</span>
-        <span style="text-align:right;">量</span><span></span><span></span>
+      <div class="log-body" id="log-body">
+        <div class="lth">
+          <span>時刻</span><span>種別</span><span>原料 / メモ</span>
+          <span style="text-align:right;">量</span><span></span><span></span>
+        </div>
+        <div id="llist"></div>
       </div>
-      <div id="llist"></div>
+    </div>
+
+    <!-- Numpad -->
+    <div class="numpad">
+      <div class="nk" onclick="nkPress('7')">7</div>
+      <div class="nk" onclick="nkPress('8')">8</div>
+      <div class="nk" onclick="nkPress('9')">9</div>
+      <div class="nk nk-del" onclick="nkBack()">⌫</div>
+      <div class="nk" onclick="nkPress('4')">4</div>
+      <div class="nk" onclick="nkPress('5')">5</div>
+      <div class="nk" onclick="nkPress('6')">6</div>
+      <div class="nk nk-clr" onclick="nkClear()">C</div>
+      <div class="nk" onclick="nkPress('1')">1</div>
+      <div class="nk" onclick="nkPress('2')">2</div>
+      <div class="nk" onclick="nkPress('3')">3</div>
+      <div class="nk" onclick="nkPress('0')" style="grid-row:span 2;">0</div>
+      <div class="nk nk-wide" onclick="nkPress('.')">.</div>
+      <div class="nk nk-wide" onclick="submitE()" style="background:var(--blue);color:#fff;">記録</div>
     </div>
 
   </div>
@@ -548,6 +604,48 @@ function renderDrawer(){
         <div class="ri-name">${esc(r.name)}</div>
         <div class="ri-date">${dateStr(new Date(r.createdAt))}</div>
       </div>`).join('');
+  updateRefSelect();
+}
+
+function updateRefSelect(){
+  const sel=document.getElementById('ref-select');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- レシピを選択 --</option>'+
+    recipes.map(r=>`<option value="${r.id}"${r.id===currentId?' disabled':''}>
+      ${esc(r.name)}${r.id===currentId?' (現在)':''}</option>`).join('');
+  if(cur)sel.value=cur;
+  renderRef();
+}
+
+function renderRef(){
+  const rid=document.getElementById('ref-select').value;
+  const list=document.getElementById('rref-list');
+  if(!rid){list.innerHTML='<div class="empty" style="font-size:11px;">参照レシピを選択してください</div>';return;}
+  const r=recipes.find(x=>x.id===rid);
+  if(!r){list.innerHTML='';return;}
+  // compute ref recipe amounts
+  const st={};
+  for(const e of r.log){
+    if(!(e.name in st))st[e.name]=0;
+    if(e.type==='set')st[e.name]=e.amt;
+    else st[e.name]+=e.amt;
+  }
+  const total=Object.values(st).reduce((a,b)=>a+Math.max(0,b),0);
+  const rows=Object.entries(st).filter(([,g])=>g>0).sort((a,b)=>b[1]-a[1]);
+  if(rows.length===0){list.innerHTML='<div class="empty" style="font-size:11px;">記録なし</div>';return;}
+  list.innerHTML=rows.map(([n,g])=>{
+    const pct=total>0?(g/total*100):0;
+    return `<div class="rref-row">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;">
+          <span class="rref-name">${esc(n)}</span>
+          <span class="rref-g">${g.toFixed(3)}</span>
+          <span class="rref-pct">${pct.toFixed(1)}%</span>
+        </div>
+        <div class="rref-bar-wrap"><div class="rref-bar-fill" style="width:${pct.toFixed(1)}%"></div></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ===== Compute =====
@@ -633,6 +731,7 @@ function renderAll(){
   document.getElementById('ttl').textContent=total.toFixed(3)+' g';
   const ct=document.getElementById('cur-total');if(ct)ct.textContent=total.toFixed(3);
   document.getElementById('idl').innerHTML=DEFAULT_INGS.map(n=>`<option value="${esc(n)}">`).join('');
+  updateRefSelect();
 
   const filt=sel?elog.filter(e=>e.name===sel):elog;
   const fp=document.getElementById('fpill'),cf=document.getElementById('cfbtn');
@@ -787,6 +886,34 @@ function initR(){
   recog.onend=()=>{listening=false;updBtn();};
   return true;
 }
+
+// Log accordion
+let logOpen=false;
+function toggleLog(){
+  logOpen=!logOpen;
+  document.getElementById('log-body').classList.toggle('open',logOpen);
+  document.getElementById('log-toggle').classList.toggle('open',logOpen);
+}
+
+// Numpad
+function nkPress(v){
+  const el=document.getElementById('fa');
+  if(!el)return;
+  el.focus();
+  const cur=el.value;
+  if(v==='.'&&cur.includes('.'))return;
+  el.value=cur+v;
+}
+function nkBack(){
+  const el=document.getElementById('fa');
+  if(!el)return;
+  el.value=el.value.slice(0,-1);
+}
+function nkClear(){
+  const el=document.getElementById('fa');
+  if(el)el.value='';
+}
+
 // Stopwatch
 let swRunning=false,swStart=0,swElapsed=0,swTimer=null;
 function swToggle(){
