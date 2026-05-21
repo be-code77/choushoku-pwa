@@ -704,8 +704,9 @@ function renderAll(){
   if(ings.length===0){
     document.getElementById('ilist').innerHTML='<div class="empty">左下から原料を追加してください</div>';
   } else {
-    document.getElementById('ilist').innerHTML=ings.map(n=>{
+    document.getElementById('ilist').innerHTML=ings.map((n,idx)=>{
       const g=st[n]||0,pct=total>0?g/total*100:0;
+      const num=idx+1;
       const sid='ri_'+btoa(encodeURIComponent(n));
       const qn=JSON.stringify(n);
       if(editIngName===n){
@@ -718,6 +719,7 @@ function renderAll(){
       return `<div class="ir${n===sel?' sel':''}${g===0?' zero':''}">
         <div class="ir-top">
           <div class="ir-main" onclick="selIng(${qn})">
+            <span style="font-size:10px;color:var(--t3);width:20px;flex-shrink:0;">${num}</span>
             <span class="in">${esc(n)}</span>
             <span class="ig">${g.toFixed(3)}</span>
             <span class="ip">${pct.toFixed(2)}%</span>
@@ -853,10 +855,23 @@ function exportCSV(){
 // ===== Voice =====
 function vs(t){document.getElementById('vs').textContent=t;}
 function vrmsg(t){document.getElementById('vr').textContent=t;}
-function findN(s){return ings.find(n=>n===s)||ings.find(n=>s.includes(n)||n.includes(s))||null;}
+function findN(s){
+  // 番号指定「1番」「1」で検索
+  const numMatch=s.match(/^(\d+)\s*番?$/);
+  if(numMatch){
+    const idx=parseInt(numMatch[1])-1;
+    if(idx>=0&&idx<ings.length)return ings[idx];
+  }
+  return ings.find(n=>n===s)||ings.find(n=>s.includes(n)||n.includes(s))||null;
+}
 
 function procV(text){
   let m;
+  // 番号指定パターン「1番を3g追加」「1番3グラム追加」
+  m=text.match(/(\d+)\s*番?\s*[をにの]?\s*(\d+\.?\d*)\s*(g|グラム)?\s*(追加|加える|足す)/);
+  if(m){const n=ings[parseInt(m[1])-1];if(n){elog.push({id:nid++,name:n,type:'add',amt:parseFloat(m[2]),note:'音声',time:new Date()});markUnsaved();vs(m[1]+'番 '+n+' +'+m[2]+'g');renderAll();return;}}
+  m=text.match(/(\d+)\s*番?\s*[をにの]?\s*(\d+\.?\d*)\s*(g|グラム)?\s*(に|へ)?\s*(セット|変更|設定)/);
+  if(m){const n=ings[parseInt(m[1])-1];if(n){elog.push({id:nid++,name:n,type:'set',amt:parseFloat(m[2]),note:'音声',time:new Date()});markUnsaved();vs(m[1]+'番 '+n+' = '+m[2]+'g');renderAll();return;}}
   m=text.match(/(.+?)を?(\d+\.?\d*)[\s　]*(パーセント|%)[\s　]*増量/);
   if(m){const n=findN(m[1].trim());if(n){const st=compute();const dv=r3((st[n]||0)*parseFloat(m[2])/100);elog.push({id:nid++,name:n,type:'add',amt:dv,note:m[2]+'%増量',time:new Date()});markUnsaved();vs(n+' +'+dv.toFixed(3)+'g');renderAll();return;}}
   m=text.match(/(.+?)を?(\d+\.?\d*)[\s　]*(g|グラム)[\s　]*(に|へ)?[\s　]*(セット|変更|設定)/);
