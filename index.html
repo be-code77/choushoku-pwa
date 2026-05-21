@@ -161,7 +161,7 @@ select option{background:var(--bg2);}
 .log-body.open{max-height:600px;}
 .lth{display:flex;gap:6px;padding:5px 2px 2px;border-bottom:0.5px solid var(--border);font-size:10px;color:var(--t3);flex-shrink:0;}
 /* Numpad */
-.numpad{background:var(--bg1);border:0.5px solid var(--border);border-radius:var(--r);padding:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;flex-shrink:0;}
+.numpad{background:var(--bg1);border:0.5px solid var(--border);border-radius:var(--r);padding:8px;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;flex-shrink:0;width:220px;align-content:stretch;}
 .nk{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--rs);padding:10px 4px;font-size:16px;font-family:var(--mono);color:var(--t1);cursor:pointer;text-align:center;user-select:none;transition:background .1s;}
 .nk:active{background:var(--bg3);}
 .nk.nk-wide{grid-column:span 2;}
@@ -322,41 +322,46 @@ select option{background:var(--bg2);}
       </div>
     </div>
 
-    <!-- Log -->
-    <div class="lc">
-      <div class="lh" onclick="toggleLog()">
-        <span style="font-size:12px;font-weight:500;color:var(--t2);">添加記録</span>
-        <span id="fpill" class="fpill" style="display:none;"></span>
-        <button id="cfbtn" class="btng" onclick="event.stopPropagation();clearSel()" style="display:none;">全表示</button>
-        <span style="flex:1"></span>
-        <span id="lcnt" style="font-size:11px;color:var(--t3);"></span>
-        <span class="lh-toggle" id="log-toggle">▼</span>
-      </div>
-      <div class="log-body" id="log-body">
-        <div class="lth">
-          <span>時刻</span><span>種別</span><span>原料 / メモ</span>
-          <span style="text-align:right;">量</span><span></span><span></span>
-        </div>
-        <div id="llist"></div>
-      </div>
-    </div>
+    <!-- Log + Numpad row -->
+    <div style="display:flex;gap:7px;flex:1;min-height:0;">
 
-    <!-- Numpad -->
-    <div class="numpad">
-      <div class="nk" onclick="nkPress('7')">7</div>
-      <div class="nk" onclick="nkPress('8')">8</div>
-      <div class="nk" onclick="nkPress('9')">9</div>
-      <div class="nk nk-del" onclick="nkBack()">⌫</div>
-      <div class="nk" onclick="nkPress('4')">4</div>
-      <div class="nk" onclick="nkPress('5')">5</div>
-      <div class="nk" onclick="nkPress('6')">6</div>
-      <div class="nk nk-clr" onclick="nkClear()">C</div>
-      <div class="nk" onclick="nkPress('1')">1</div>
-      <div class="nk" onclick="nkPress('2')">2</div>
-      <div class="nk" onclick="nkPress('3')">3</div>
-      <div class="nk" onclick="nkPress('0')" style="grid-row:span 2;">0</div>
-      <div class="nk nk-wide" onclick="nkPress('.')">.</div>
-      <div class="nk nk-wide" onclick="submitE()" style="background:var(--blue);color:#fff;">記録</div>
+      <!-- Log -->
+      <div class="lc" style="flex:1;">
+        <div class="lh" onclick="toggleLog()">
+          <span style="font-size:12px;font-weight:500;color:var(--t2);">添加記録</span>
+          <span id="fpill" class="fpill" style="display:none;"></span>
+          <button id="cfbtn" class="btng" onclick="event.stopPropagation();clearSel()" style="display:none;">全表示</button>
+          <span style="flex:1"></span>
+          <span id="lcnt" style="font-size:11px;color:var(--t3);"></span>
+          <span class="lh-toggle" id="log-toggle">▼</span>
+        </div>
+        <div class="log-body" id="log-body">
+          <div class="lth">
+            <span>時刻</span><span>種別</span><span>原料 / メモ</span>
+            <span style="text-align:right;">量</span><span></span><span></span>
+          </div>
+          <div id="llist"></div>
+        </div>
+      </div>
+
+      <!-- Numpad -->
+      <div class="numpad">
+        <div class="nk" onclick="nkPress('7')">7</div>
+        <div class="nk" onclick="nkPress('8')">8</div>
+        <div class="nk" onclick="nkPress('9')">9</div>
+        <div class="nk nk-del" onclick="nkBack()">⌫</div>
+        <div class="nk" onclick="nkPress('4')">4</div>
+        <div class="nk" onclick="nkPress('5')">5</div>
+        <div class="nk" onclick="nkPress('6')">6</div>
+        <div class="nk nk-clr" onclick="nkClear()">C</div>
+        <div class="nk" onclick="nkPress('1')">1</div>
+        <div class="nk" onclick="nkPress('2')">2</div>
+        <div class="nk" onclick="nkPress('3')">3</div>
+        <div class="nk" onclick="nkPress('0')" style="grid-row:span 2;">0</div>
+        <div class="nk nk-wide" onclick="nkPress('.')">.</div>
+        <div class="nk nk-wide" onclick="submitE()" style="background:var(--blue);color:#fff;">記録</div>
+      </div>
+
     </div>
 
   </div>
